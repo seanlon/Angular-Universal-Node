@@ -12,9 +12,10 @@ export class UniversalInterceptor implements HttpInterceptor {
       url: `${this.serverUrl}${req.url}`,
       headers: req.headers.set('Authorization', `Bearer `+this.token)
     });
-
+ 
     return next.handle(serverReq);
 
   }
 
 }
+ 

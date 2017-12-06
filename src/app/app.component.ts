@@ -34,6 +34,7 @@ export class AppComponent {
       let _httpHeader = new HttpHeaders();
       let _headers = _httpHeader.set('Authorization','Bearer '+this.tokenKey);
       //if (!this.data) {
+        console.log('app called');
         this.http
         .get('/api/getData',{headers: _headers})
         .subscribe(

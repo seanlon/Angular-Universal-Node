@@ -10,7 +10,9 @@ import * as environment from '../environment.json';
 
 var jwt = require('jsonwebtoken');
 var moment = require('moment');
-
+var nodeCookie = require('node-cookie');
+var isFirstTime = true;
+const cookie = require('cookie');
 enableProdMode();
 
 const PORT = process.env.PORT || 4200;
@@ -20,7 +22,7 @@ const app = express();
 
 const template = readFileSync(join(DIST_FOLDER, 'browser', 'index.html')).toString();
 const { AppServerModuleNgFactory } = require('main.server');
-
+ 
 // Express Engine
 import { ngExpressEngine } from '@nguniversal/express-engine';
 
@@ -28,7 +30,13 @@ var secretKey = (<any>environment).pwd;
 /* Server-side rendering */
 function angularRouter(req, res) {
 
-  var token = generateToken();
+  console.log('req.url',req.url);
+  var token = generateToken();  
+  res.setHeader('Set-Cookie', cookie.serialize('authTokenCookieKey',  token, {
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 1 // 1 day 
+  })); 
+
   res.render(join(DIST_FOLDER, 'browser', 'index.html'), {
     req: req,
     res: res,
@@ -62,8 +70,12 @@ app.set('view engine', 'html');
 app.set('views', 'src')
 
 app.get("/api/*", (req, res) => {
-  console.log(req.headers.authorization);
-  console.log(req.headers.authorization.split(" ")[1]);
+
+  console.log('req.url',  req.url);
+  // Parse the cookies on the request 
+  var cookies = cookie.parse(req.headers.cookie || '');
+  console.log('cookies', cookies['authTokenCookieKey']);  
+ 
   jwt.verify(req.headers.authorization.split(" ")[1], secretKey, function (err, decoded) {
     //  console.log('decoded', decoded); console.log('err', err);
     if (err || !decoded) return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
@@ -82,8 +94,7 @@ app.get("/api/*", (req, res) => {
   });
 });
 
-app.get('*.*', express.static(join(DIST_FOLDER, 'browser')));
-
+app.get('*.*', express.static(join(DIST_FOLDER, 'browser'))); 
 app.get('*', angularRouter);
 
 app.listen(PORT, () => {

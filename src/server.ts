@@ -14,6 +14,8 @@ var nodeCookie = require('node-cookie');
 var isFirstTime = true;
 const cookie = require('cookie');
 enableProdMode();
+import { TransferState, makeStateKey } from '@angular/platform-browser';
+import { isPlatformServer, isPlatformBrowser } from '@angular/common';
 
 const PORT = process.env.PORT || 4200;
 const DIST_FOLDER = join(process.cwd(), 'dist');
@@ -22,7 +24,7 @@ const app = express();
 
 const template = readFileSync(join(DIST_FOLDER, 'browser', 'index.html')).toString();
 const { AppServerModuleNgFactory } = require('main.server');
- 
+
 // Express Engine
 import { ngExpressEngine } from '@nguniversal/express-engine';
 
@@ -30,12 +32,13 @@ var secretKey = (<any>environment).pwd;
 /* Server-side rendering */
 function angularRouter(req, res) {
 
-  console.log('req.url',req.url);
-  var generatedToken = generateToken();  
-  res.setHeader('Set-Cookie', cookie.serialize('authTokenCookieKey',  generatedToken, {
+  console.log('req.url', req.url);
+  var generatedToken = generateToken();
+  res.setHeader('Set-Cookie', cookie.serialize('authTokenCookieKey', generatedToken, {
     httpOnly: false,
     maxAge: 60 * 60 * 24 * 1 // 1 day 
-  })); 
+  }));
+ 
 
   res.render(join(DIST_FOLDER, 'browser', 'index.html'), {
     req: req,
@@ -71,30 +74,12 @@ app.set('views', 'src')
 
 app.get("/api/*", (req, res) => {
 
-  console.log('req.url',  req.url);
-  // Parse the cookies on the request 
-  var cookies = cookie.parse(req.headers.cookie || '');
-  console.log('cookies', cookies['authTokenCookieKey']);  
- 
-  jwt.verify(req.headers.authorization.split(" ")[1], secretKey, function (err, decoded) {
-    //  console.log('decoded', decoded); console.log('err', err);
-    if (err || !decoded) return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
-
-    const currentDateTime = moment();
-    const expiryDateTime = moment(decoded.expiryDate);
-    const differenceTimeMs = expiryDateTime.diff(currentDateTime);
-    const messageResponse = differenceTimeMs < 0 ? 'Please check expired token' : 'success'
-
-    console.log('currentDateTime', currentDateTime);
-    console.log('expiryDateTime', expiryDateTime);
-    console.log('differenceTimeMs', differenceTimeMs);
-    return res.send({
-      "differenceTimeMs": differenceTimeMs, "isTokenExpired": (differenceTimeMs < 0), "message": messageResponse
-    });
+  return res.send({
+    "res": "test"
   });
 });
 
-app.get('*.*', express.static(join(DIST_FOLDER, 'browser'))); 
+app.get('*.*', express.static(join(DIST_FOLDER, 'browser')));
 app.get('*', angularRouter);
 
 app.listen(PORT, () => {

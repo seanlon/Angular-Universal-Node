@@ -28,6 +28,7 @@ export class AppComponent {
     //   this.state.set(TOKEN_KEY, this.token as any);
     // }
 
+    console.log("AppComponent" );
     const found = this.state.hasKey(TOKEN_KEY);
     if (found && isPlatformBrowser) {
       this.tokenKey = this.state.get(TOKEN_KEY, 'none' as any);
@@ -36,8 +37,18 @@ export class AppComponent {
     }
 
     if (!found && isPlatformServer) {
+      const apiData = [];
       //set api 
-      this.state.onSerialize(TOKEN_KEY, () => 'abcc' as any);
+      this.state.onSerialize(TOKEN_KEY, () => this.data as any);
+      this.http
+        .get('/api/getData')
+        .subscribe(
+        (data) => {
+          this.data = data;
+        },
+        (error) => {
+          console.log("error" + error);
+        });
     }
 
 

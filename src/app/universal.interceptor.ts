@@ -17,5 +17,4 @@ export class UniversalInterceptor implements HttpInterceptor {
 
   }
 
-}
- 
+} 

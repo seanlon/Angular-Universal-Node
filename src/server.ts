@@ -31,8 +31,8 @@ var secretKey = (<any>environment).pwd;
 function angularRouter(req, res) {
 
   console.log('req.url',req.url);
-  var token = generateToken();  
-  res.setHeader('Set-Cookie', cookie.serialize('authTokenCookieKey',  token, {
+  var generatedToken = generateToken();  
+  res.setHeader('Set-Cookie', cookie.serialize('authTokenCookieKey',  generatedToken, {
     httpOnly: false,
     maxAge: 60 * 60 * 24 * 1 // 1 day 
   })); 
@@ -45,7 +45,7 @@ function angularRouter(req, res) {
       useValue: `http://localhost:4200`
     }, {
       provide: 'token',
-      useValue: token
+      useValue: generatedToken
     }]
   });
 
